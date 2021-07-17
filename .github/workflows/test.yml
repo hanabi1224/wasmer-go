@@ -6,52 +6,8 @@ on:
     branches: [master]
   workflow_dispatch:
 jobs:
-  build-c-api:
-    name: Build wasmer c-api
-    runs-on: ${{ matrix.target.os }}
-    strategy:
-      fail-fast: true
-      matrix:
-          target:
-          - id: 'linux-amd64'
-            os: 'ubuntu-20.04'
-          - id: 'darwin-amd64'
-            os: 'macos-latest'
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-      - name: md
-        run: |
-          mkdir artifacts || echo ''
-          md artifacts || echo ''
-          ls -al
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          default: false
-      - name: Build
-        run: |
-          cargo build --release
-      - name: Copy artifacts - linux-amd64
-        if: matrix.target.id == 'linux-amd64'
-        run: |
-          mkdir artifacts/linux-amd64
-          cp target/release/libwasmer_go.a artifacts/linux-amd64
-      - name: Copy artifacts - darwin-amd64
-        if: matrix.target.id == 'darwin-amd64'
-        run: |
-          mkdir artifacts/darwin-amd64
-          cp target/release/libwasmer_go.a artifacts/darwin-amd64
-      - uses: actions/upload-artifact@v2
-        with:
-          name: c-api
-          path: artifacts/**/*
-          if-no-files-found: error
-  test-go-lib:
+  test:
     name: Build and Test
-    needs: [build-c-api]
     strategy:
       matrix:
         go: [1.16]
@@ -118,6 +74,12 @@ jobs:
           export CGO_CFLAGS="-I$(pwd)/libwasmer/include/"
           export CGO_LDFLAGS="-Wl,-rpath,$(pwd)/libwasmer/lib/ -L$(pwd)/libwasmer/lib/ -lwasmer"
           just test -tags custom_wasmer_runtime
+
+      - name: Run e2e tests (default)
+        if: ${{ !matrix.target.libwasmer_archive_name }}
+        shell: bash
+        run: |
+          just e2e
 
       - name: Run all the examples
         shell: bash
