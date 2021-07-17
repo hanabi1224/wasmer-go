@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 rm -r vendor || echo ''
 mkdir -p vendor/github.com/wasmerio/wasmer-go
 cp -r ../wasmer vendor/github.com/wasmerio/wasmer-go
