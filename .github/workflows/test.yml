@@ -24,6 +24,7 @@ jobs:
         run: |
           mkdir artifacts || echo ''
           md artifacts || echo ''
+          ls -al
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
