@@ -41,7 +41,7 @@ jobs:
       - name: Copy artifacts - darwin-amd64
         if: matrix.target.id == 'darwin-amd64'
         run: |
-          md artifacts/darwin-amd64
+          mkdir artifacts/darwin-amd64
           cp target/release/libwasmer_go.a artifacts/darwin-amd64
       - uses: actions/upload-artifact@v2
         with:
