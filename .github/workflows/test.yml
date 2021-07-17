@@ -1,6 +1,10 @@
 name: Build and Test
 
-on: [push]
+on: 
+  push:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
 jobs:
   build-c-api:
     name: Build wasmer c-api
