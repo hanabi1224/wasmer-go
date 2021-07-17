@@ -44,6 +44,12 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
+      - name: E2E
+        if: ${{ !matrix.target.libwasmer_archive_name }}
+        run: |
+          cd e2e
+          ./test.sh
+
       - name: Set up just
         shell: bash
         run: |
