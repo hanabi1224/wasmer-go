@@ -1,24 +1,51 @@
 name: Build and Test
 
-on:
-  push:
-    branches:
-      - master
-      - staging
-      - trying
-  schedule:
-    - cron: '0 2 * * *' # To test `wasmer-nightly` with `libwasmer_archive_name`.
-
+on: [push]
 jobs:
-  test:
+  build-c-api:
+    name: Build wasmer c-api
+    runs-on: ${{ matrix.target.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+          target:
+          - id: 'linux-amd64'
+            os: 'ubuntu-20.04'
+          - id: 'darwin-amd64'
+            os: 'macos-latest'
+    steps:
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          default: false
+      - name: Build
+        run: |
+          cargo build --release
+      - name: Copy artifacts - linux-amd64
+        if: matrix.target.id == 'linux-amd64'
+        run: |
+          md artifacts/linux-amd64
+          cp target/release/libwasmer_go.a artifacts/linux-amd64
+      - name: Copy artifacts - darwin-amd64
+        if: matrix.target.id == 'darwin-amd64'
+        run: |
+          md artifacts/darwin-amd64
+          cp target/release/libwasmer_go.a artifacts/darwin-amd64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: c-api
+          path: artifacts/**/*
+          if-no-files-found: error
+  test-go-lib:
     name: Build and Test
-
     strategy:
       matrix:
-        go: [1.14, 1.15]
+        go: [1.16]
         target:
           - id: 'linux-amd64'
-            os: 'ubuntu-18.04'
+            os: 'ubuntu-20.04'
 
           #- id: 'linux-aarch64'
           #  os: ['self-hosted', 'linux', 'ARM64']
@@ -26,9 +53,9 @@ jobs:
           - id: 'darwin-amd64'
             os: 'macos-latest'
 
-          - id: 'linux-amd64'
-            os: 'ubuntu-18.04'
-            libwasmer_archive_name: 'wasmer-linux-amd64.tar.gz'
+          # - id: 'linux-amd64'
+          #   os: 'ubuntu-20.04'
+          #   libwasmer_archive_name: 'wasmer-linux-amd64.tar.gz'
       fail-fast: true
 
     runs-on: ${{ matrix.target.os }}
@@ -36,6 +63,12 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Download c-api libs
+        uses: actions/download-artifact@v2
+        with:
+          name: c-api
+          path: artifacts
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
