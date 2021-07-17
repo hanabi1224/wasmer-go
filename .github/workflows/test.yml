@@ -18,6 +18,8 @@ jobs:
           - id: 'darwin-amd64'
             os: 'macos-latest'
     steps:
+      - name: Check out code
+        uses: actions/checkout@v2
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
