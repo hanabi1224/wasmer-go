@@ -20,6 +20,10 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+      - name: md
+        run: |
+          mkdir artifacts || echo ''
+          md artifacts || echo ''
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -32,7 +36,7 @@ jobs:
       - name: Copy artifacts - linux-amd64
         if: matrix.target.id == 'linux-amd64'
         run: |
-          md artifacts/linux-amd64
+          mkdir artifacts/linux-amd64
           cp target/release/libwasmer_go.a artifacts/linux-amd64
       - name: Copy artifacts - darwin-amd64
         if: matrix.target.id == 'darwin-amd64'
@@ -46,6 +50,7 @@ jobs:
           if-no-files-found: error
   test-go-lib:
     name: Build and Test
+    needs: [build-c-api]
     strategy:
       matrix:
         go: [1.16]
